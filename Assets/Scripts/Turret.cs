@@ -24,8 +24,10 @@ public class Turret : MonoBehaviour {
 
 	private void LookForEnemy () {
 		GameObject player = GameObject.FindGameObjectWithTag ("Player");
-		if (Vector3.Magnitude (player.transform.position - this.transform.position) < 6) {
-			//TODO: Lose player health
+		if (player != null) {
+			if (Vector3.Magnitude (player.transform.position - this.transform.position) < 6) {
+				//TODO: Lose player health
+			}
 		}
 	}
 }

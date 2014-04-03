@@ -7,7 +7,7 @@ Material:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: Toony-Lighted Outline
-  m_Shader: {fileID: 4800000, guid: 054a31a99d11e49d110086ba44295342, type: 3}
+  m_Shader: {fileID: 7, guid: 0000000000000000f000000000000000, type: 0}
   m_ShaderKeywords: []
   m_CustomRenderQueue: -1
   m_SavedProperties:
@@ -37,17 +37,21 @@ Material:
     m_Floats:
       data:
         first:
-          name: _Shininess
-        second: .699999988
-      data:
-        first:
           name: _Outline
         second: .00701492419
+      data:
+        first:
+          name: _Shininess
+        second: .699999988
     m_Colors:
       data:
         first:
           name: _Color
         second: {r: .50251013, g: .50251013, b: .50251013, a: 1}
+      data:
+        first:
+          name: _OutlineColor
+        second: {r: 0, g: 0, b: 0, a: 1}
       data:
         first:
           name: _SpecColor
@@ -56,10 +60,6 @@ Material:
         first:
           name: _Emission
         second: {r: 0, g: 0, b: 0, a: 0}
-      data:
-        first:
-          name: _OutlineColor
-        second: {r: 0, g: 0, b: 0, a: 1}
 --- !u!1002 &2100001
 EditorExtensionImpl:
   serializedVersion: 6

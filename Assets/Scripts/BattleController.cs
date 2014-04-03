@@ -10,14 +10,9 @@ public class BattleController : MonoBehaviour {
 	}
 
 	void SpawnPlayer(NetworkPlayer player) {
-		GameObject newPlayer = (GameObject)Network.Instantiate(playerPrefab, Vector3.zero, Quaternion.identity, 0);
+		Transform newPlayer = (Transform)Network.Instantiate(playerPrefab, Vector3.zero, Quaternion.identity, 0);
 		NetworkView newNetworkView = newPlayer.networkView;
-		newNetworkView.RPC ("CreatePlayer", RPCMode.AllBuffered, player);
-	}
-
-	[RPC]
-	void CreatePlayer(NetworkPlayer player) {
-
+		newNetworkView.RPC ("SetPlayer", RPCMode.AllBuffered, player);
 	}
 
 	// Use this for initialization
