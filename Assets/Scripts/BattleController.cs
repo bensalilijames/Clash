@@ -3,16 +3,19 @@ using System.Collections;
 
 public class BattleController : MonoBehaviour {
 
-	public Transform playerPrefab;
+	public GameObject playerCreatorPrefab;
+	public GameObject playerOwnerPrefab;
+	public GameObject playerProxyPrefab;
+	
+	private Vector3 spawnLocation = Vector3.zero;
+	private Quaternion spawnRotation = Quaternion.identity;
 
-	void OnPlayerConnected(NetworkPlayer player) {
+	void uLink_OnPlayerConnected(uLink.NetworkPlayer player) {
 		SpawnPlayer(player);
 	}
 
-	void SpawnPlayer(NetworkPlayer player) {
-		Transform newPlayer = (Transform)Network.Instantiate(playerPrefab, Vector3.zero, Quaternion.identity, 0);
-		NetworkView newNetworkView = newPlayer.networkView;
-		newNetworkView.RPC ("SetPlayer", RPCMode.AllBuffered, player);
+	void SpawnPlayer(uLink.NetworkPlayer player) {
+		uLink.Network.Instantiate(player, playerProxyPrefab, playerOwnerPrefab, playerCreatorPrefab, spawnLocation, spawnRotation, 0);
 	}
 
 	// Use this for initialization
