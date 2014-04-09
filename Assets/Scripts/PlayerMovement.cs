@@ -11,6 +11,7 @@ public class PlayerMovement : uLink.MonoBehaviour {
 	private Quaternion targetRotation;
 	
 	private Combat combatScript;
+	private BattleController battleControllerScript;
 	
 	private Seeker seeker;
 	private Path path;
@@ -22,6 +23,7 @@ public class PlayerMovement : uLink.MonoBehaviour {
 		targetPosition.y = 0.5f;
 		seeker = GetComponent<Seeker>();
 		combatScript = GetComponent<Combat>();
+		battleControllerScript = GameObject.FindGameObjectWithTag("BattleController").GetComponent<BattleController>();
 	}
 	
 	public void FindPath () {
@@ -73,6 +75,9 @@ public class PlayerMovement : uLink.MonoBehaviour {
 				}
 			}
 			
+		} else {
+			transform.position = Vector3.MoveTowards(transform.position, targetPosition, moveSpeed * Time.deltaTime);
+			transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotateSpeed * Time.deltaTime);
 		}
 	}
 	
@@ -98,39 +103,29 @@ public class PlayerMovement : uLink.MonoBehaviour {
 	}
 	
 	[RPC]
-	void SendMovementInput (Vector3 position, string hitName) {
+	void SendMovementInput (Vector3 position, string hitName, int ID) {
 		if (hitName == "Plane") {	
 			targetPosition = position;
 			targetPosition.y = 0.5f;
 			targetRotation = Quaternion.LookRotation(targetPosition - transform.position);
 			
+			combatScript.target = null;
+			
 			FindPath ();
-		}
-		else if (hitName == "Turret")
-		{
-			//combatScript.target = hitCollider.gameObject;
-			//MoveInRange (hitCollider.gameObject);
-		}
-		else if (hitName == "AI")
-		{
-			//combatScript.target = hit.transform.gameObject;
-			//MoveInRange (hitCollider.gameObject);
+		} else if (hitName.Contains("Turret") || hitName.Contains("AI")) {
+			GameObject target = battleControllerScript.GetGameObject(ID);
+			combatScript.target = target;
+			MoveInRange (target);
 		}
 	}
 	
 	void uLink_OnSerializeNetworkView (uLink.BitStream stream, uLink.NetworkMessageInfo info) {
 		if (stream.isWriting) {
-			Debug.Log("Sending position.");
-			stream.Write(transform.position);
-			stream.Write(transform.rotation);
+			stream.Write(targetPosition);
+			stream.Write(targetRotation);
 		} else {
-			Vector3 receivedPosition = Vector3.zero;
-			Quaternion receivedRotation = Quaternion.identity;
-			Debug.Log("Receiving position.");
-			receivedPosition = stream.Read<Vector3>();
-			receivedRotation = stream.Read<Quaternion>();
-			transform.position = receivedPosition;
-			transform.rotation = receivedRotation;
+			targetPosition = stream.Read<Vector3>();
+			targetRotation = stream.Read<Quaternion>();
 		}
 	}
 	

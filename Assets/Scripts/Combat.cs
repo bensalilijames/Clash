@@ -14,11 +14,17 @@ public class Combat : MonoBehaviour {
 	private float cooldown;
 	private bool showHitmark;
 	private GameObject hitmark;
+	
+	private BattleController battleControllerScript;
 
 	// Use this for initialization
 	void Start () {
 		hitmark = (GameObject)Instantiate(hitmarkPrefab);
 		hitmark.SetActive(false);
+		battleControllerScript = GameObject.FindGameObjectWithTag("BattleController").GetComponent<BattleController>();
+		if (battleControllerScript == null) {
+			Debug.Log ("Battle Controller not found");
+		}
 	}
 	
 	// Update is called once per frame
@@ -33,22 +39,42 @@ public class Combat : MonoBehaviour {
 	}
 
 	private void Attack () {
-		if (cooldown > 0f) {
-			cooldown -= attackSpeed * Time.deltaTime;
+		if (uLink.Network.isServer) {
+			if (cooldown > 0f) {
+				cooldown -= attackSpeed * Time.deltaTime;
+				return;
+			}
+			if (target == null) {
+				return;
+			}
+			Vector3 correctedTargetPosition = target.transform.position;
+			correctedTargetPosition.y = 0.5f;
+			if ((correctedTargetPosition - transform.position).magnitude > range + 0.01f) {
+				return;
+			}
+			cooldown = 100.0f;
+			
+			if (gameObject == null) {
+				Debug.Log ("GameObject not found!");
+			}
+			
+			int attackerID = battleControllerScript.GetGameObjectID(gameObject);
+			Debug.Log("GameObject ID for attacker: " + attackerID);
+			int targetID = battleControllerScript.GetGameObjectID(target);
+			Debug.Log("GameObject ID for target: " + targetID);
+			uLinkNetworkView.Get(this).RPC ("sendAttack", uLink.RPCMode.Others, attackerID, targetID);
+		}
+	}
+	
+	[RPC]
+	public void sendAttack(int attackerID, int targetID) {
+		GameObject targetToHit = battleControllerScript.GetGameObject(targetID);
+		if (targetToHit == null) {
+			Debug.Log("No target from server RPC");
 			return;
 		}
-		if (target == null) {
-			return;
-		}
-		Vector3 correctedTargetPosition = target.transform.position;
-		correctedTargetPosition.y = 0.5f;
-		if ((correctedTargetPosition - transform.position).magnitude > range + 0.01f) {
-			return;
-		}
-		Debug.Log ("Attacking Target!");
-		gameObject.GetComponentInChildren<AmmoController> ().ThrowCube (target);
+		gameObject.GetComponentInChildren<AmmoController> ().ThrowCube (targetToHit);
 		audio.clip = shootSound;
 		audio.Play();
-		cooldown = 100f;
 	}
 }
