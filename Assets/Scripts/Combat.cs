@@ -9,18 +9,13 @@ public class Combat : MonoBehaviour {
 	public GameObject target;
 	public float range;
 	public AudioClip shootSound;
-	public GameObject hitmarkPrefab;
 
 	private float cooldown;
-	private bool showHitmark;
-	private GameObject hitmark;
 	
 	private BattleController battleControllerScript;
 
 	// Use this for initialization
 	void Start () {
-		hitmark = (GameObject)Instantiate(hitmarkPrefab);
-		hitmark.SetActive(false);
 		battleControllerScript = GameObject.FindGameObjectWithTag("BattleController").GetComponent<BattleController>();
 		if (battleControllerScript == null) {
 			Debug.Log ("Battle Controller not found");
@@ -29,12 +24,6 @@ public class Combat : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		if (Input.GetKeyDown(KeyCode.Q)) {
-			hitmark.SetActive(true);
-		}
-		if (Input.GetMouseButtonDown(0)) {
-			hitmark.SetActive(false);
-		}
 		Attack ();
 	}
 
@@ -76,5 +65,6 @@ public class Combat : MonoBehaviour {
 		gameObject.GetComponentInChildren<AmmoController> ().ThrowCube (targetToHit);
 		audio.clip = shootSound;
 		audio.Play();
+		Debug.Log ("Done " + attackDamage + " damage to " + targetToHit.name);
 	}
 }

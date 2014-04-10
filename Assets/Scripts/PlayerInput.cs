@@ -7,6 +7,7 @@ public class PlayerInput : MonoBehaviour {
 	private RaycastHit hit;
 	
 	private BattleController battleControllerScript;
+	private AbilitiesEngine abilitiesEngineScript;
 	
 	void uLink_OnNetworkInstantiate(uLink.NetworkMessageInfo msg) 
 	{
@@ -15,6 +16,7 @@ public class PlayerInput : MonoBehaviour {
 
 	void Start () {
 		battleControllerScript = GameObject.FindGameObjectWithTag("BattleController").GetComponent<BattleController>();
+		abilitiesEngineScript = gameObject.GetComponent<AbilitiesEngine>();
 	}
 
 	// Update is called once per frame
@@ -31,6 +33,10 @@ public class PlayerInput : MonoBehaviour {
 					uLink.NetworkView.Get(this).RPC("SendMovementInput", uLink.RPCMode.Server, hit.point, hit.collider.name, IDToSend);
 				}
 			}
+		}
+		
+		if (Input.GetKeyDown(KeyCode.Q)) {
+			abilitiesEngineScript.DoAbility(0);
 		}
 	}
 }
