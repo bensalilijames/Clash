@@ -9,11 +9,12 @@ public enum AbilityType {
 
 public class Ability {
 
-	protected AbilityType abilityType;
+	public AbilityType abilityType;
 	protected float baseDamage;
 	protected float cooldown;
-	protected float currentCooldown;
+	public float currentCooldown;
 	protected float currentAbilityLevel;
+	protected string name;
 	protected string description;
 	protected Texture2D icon;
 	protected GameObject targetIndicatorPrefab;
@@ -23,16 +24,20 @@ public class Ability {
 		if (currentCooldown < 0) currentCooldown = 0;
 	}
 	
-	public void DoAbility (GameObject player) {
-		if (currentCooldown > 0) return;
+	public void DoAbility (GameObject player, Vector3 position) {
+		
+		if (currentCooldown > 0) {
+			Debug.Log("Tried to do ability when on cooldown");
+			return;
+		}
 	
 		if (abilityType == AbilityType.InstantEffect) {
 			DoInstantEffect(player);
 		} else if (abilityType == AbilityType.TargettedEffect) {
-			DoTargettedEffect(player);
+			DoTargettedEffect(player, position);
 		} else if (abilityType == AbilityType.InstantTargettedEffect) {
 			DoInstantEffect(player);
-			DoTargettedEffect(player);
+			DoTargettedEffect(player, position);
 		}
 		currentCooldown = cooldown;
 	}
@@ -41,16 +46,26 @@ public class Ability {
 		Debug.Log ("This ability has no instant effect");
 	}
 	
-	virtual public void DoTargettedEffect (GameObject player) {
+	virtual public void DoTargettedEffect (GameObject player, Vector3 position) {
 		Debug.Log ("This ability has no targetted effect");
 	}
 
 	virtual public void ShowTargetIndicator () {
-		Debug.Log ("This ability has no target indicator to show");
+		if (targetIndicatorPrefab != null) {
+			Debug.Log ("Showing target indicator");
+			targetIndicatorPrefab.SetActive(true);
+		} else {
+			Debug.Log ("This ability has no target indicator to show");
+		}
 	}
 
 	virtual public void HideTargetIndicator () {
-		Debug.Log ("This ability has no target indicator to hide");
+		if (targetIndicatorPrefab != null) {
+			Debug.Log ("Hiding target indicator");
+			targetIndicatorPrefab.SetActive(false);
+		} else {
+			Debug.Log ("This ability has no target indicator to hide");
+		}
 	}
 	
 }

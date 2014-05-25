@@ -4,6 +4,7 @@ using System.Collections;
 public class PlayerInput : MonoBehaviour {
 
 	private Vector3 lastClientClick = Vector3.zero;
+	private int lastAbilitySelection = -1;
 	private RaycastHit hit;
 	
 	private BattleController battleControllerScript;
@@ -32,11 +33,23 @@ public class PlayerInput : MonoBehaviour {
 					int IDToSend = battleControllerScript.GetGameObjectID(hit.collider.gameObject);
 					uLink.NetworkView.Get(this).RPC("SendMovementInput", uLink.RPCMode.Server, hit.point, hit.collider.name, IDToSend);
 				}
+				
+				if(abilitiesEngineScript.isCurrentlyTargetting) {
+					abilitiesEngineScript.ExecuteAbility(lastAbilitySelection, lastClientClick);
+				}
 			}
 		}
 		
 		if (Input.GetKeyDown(KeyCode.Q)) {
-			abilitiesEngineScript.DoAbility(0);
+			Debug.Log("Ability 0 clicked");
+			lastAbilitySelection = 0;
+			abilitiesEngineScript.SetupAbility(0);
+		}
+		
+		if (Input.GetKeyDown(KeyCode.W)) {
+			Debug.Log("Ability 1 clicked");
+			lastAbilitySelection = 1;
+			abilitiesEngineScript.SetupAbility(1);
 		}
 	}
 }

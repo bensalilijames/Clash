@@ -14,6 +14,7 @@ GameObject:
   - 114: {fileID: 11400008}
   - 114: {fileID: 11400002}
   - 114: {fileID: 11400010}
+  - 114: {fileID: 11400012}
   - 114: {fileID: 11400004}
   - 82: {fileID: 8200000}
   - 114: {fileID: 11400000}
@@ -295,7 +296,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c3556763c07a419ab8ac2b6515d7656, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isCurrentlyTargettingEnemies: 0
+  isCurrentlyTargetting: 0
   abilityBarTexture: {fileID: 2800000, guid: 781c47cba82b142d0b3d6f38bc32c71c, type: 3}
   abilityBarStyle:
     m_Name: AbilityBarStyle
@@ -356,6 +357,25 @@ MonoBehaviour:
     m_FixedHeight: 0
     m_StretchWidth: 0
     m_StretchHeight: 0
+--- !u!114 &11400012
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 100000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 218fd5ca8f0984d4f80ee478fccb47b8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  baseAttackSpeed: 50
+  baseAttackDamage: 0
+  baseDefencePotential: 0
+  baseMovementSpeed: 6
+  attackSpeed: 0
+  attackDamage: 0
+  defencePotential: 0
+  movementSpeed: 0
 --- !u!198 &19800000
 ParticleSystem:
   m_ObjectHideFlags: 1
