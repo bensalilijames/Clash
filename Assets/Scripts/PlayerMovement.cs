@@ -112,10 +112,12 @@ public class PlayerMovement : uLink.MonoBehaviour {
 			combatScript.target = null;
 			
 			FindPath ();
-		} else if (hitName.Contains("Turret") || hitName.Contains("AI")) {
+		} else if (hitName.Contains("Turret") || hitName.Contains("AI") || hitName.Contains("Player")) {
 			GameObject target = battleControllerScript.GetGameObject(ID);
-			combatScript.target = target;
-			MoveInRange (target);
+			if(target != gameObject) {
+				combatScript.target = target;
+				MoveInRange (target);
+			}
 		}
 	}
 	

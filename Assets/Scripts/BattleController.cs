@@ -7,7 +7,7 @@ public class BattleController : MonoBehaviour {
 	public GameObject playerOwnerPrefab;
 	public GameObject playerProxyPrefab;
 	
-	private GameObject[] players = new GameObject[5];
+	public GameObject[] players = new GameObject[5];
 	private int playerCount = 0;
 
 	private GameObject[] turrets = null;
@@ -27,6 +27,7 @@ public class BattleController : MonoBehaviour {
 	}
 
 	void SpawnPlayer(uLink.NetworkPlayer player) {
+		Debug.Log ("Player initialised with an ID of " + playerCount);
 		players[playerCount] = uLink.Network.Instantiate(player, playerProxyPrefab, playerOwnerPrefab, playerCreatorPrefab, spawnLocation, spawnRotation, 0);
 		playerCount++;
 	}
@@ -67,5 +68,22 @@ public class BattleController : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 	
+	}
+	
+	void uLink_OnSerializeNetworkView (uLink.BitStream stream, uLink.NetworkMessageInfo info) {
+		Debug.Log ("Player count is " + playerCount);
+		if (stream.isWriting) {
+			stream.Write(playerCount);
+			for (int i = 0; i < playerCount; i++) {
+				if (players[i] != null) {
+					stream.Write (uLinkNetworkView.Get(players[i]).viewID);
+				}
+			}
+		} else {
+			playerCount = stream.Read<int>();
+			for (int i = 0; i < playerCount; i++) {
+				players[i] = uLinkNetworkView.Find(stream.Read<uLink.NetworkViewID>()).gameObject;
+			}
+		}
 	}
 }
