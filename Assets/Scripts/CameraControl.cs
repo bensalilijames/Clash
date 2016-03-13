@@ -1,25 +1,32 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class CameraControl : MonoBehaviour {
+public class CameraControl : MonoBehaviour
+{
 	private Vector3 offset;
 	public Transform playerTarget;
 
 	// Use this for initialization
-	void Start () {
+	void Start()
+	{
 		offset = transform.position;
 	}
 	
 	// Update is called once per frame
-	void Update () {
-		if (playerTarget != null) {
+	void Update()
+	{
+		if (playerTarget != null)
+		{
 			transform.position = playerTarget.position + offset;
-		} else {
+		}
+		else
+		{
 			transform.position = offset;
 		}
 	}
-	
-	void SetPlayerTarget (Transform playerTargetToSet) {
+
+	void SetPlayerTarget(Transform playerTargetToSet)
+	{
 		playerTarget = playerTargetToSet;
 	}
 }

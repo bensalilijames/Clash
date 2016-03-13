@@ -9,6 +9,8 @@ The system has a Free version and a Pro version, both can found on my website (s
 Documentation for the system can be found at:
 	http://www.arongranberg.com/astar/docs/
 
+Documentation can also be found in the Documentation.zip file included in the project.
+
 A Get Started Guide can be found here:
 	http://www.arongranberg.com/astar/docs/getstarted.php
 	(eventually updated URL can be found by adding the Pathfinder component to some GameObject and go to Inspector -> About -> Documentation)

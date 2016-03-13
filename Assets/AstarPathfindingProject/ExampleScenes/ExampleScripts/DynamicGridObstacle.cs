@@ -1,140 +1,144 @@
-//#define ASTARDEBUG //Enable for some debug lines showing the DynamicGridObstacle activity
-
 using UnityEngine;
-using System.Collections;
 using Pathfinding;
 
 /** Attach this script to any obstacle with a collider to enable dynamic updates of the graphs around it.
  * When the object has moved a certain distance (or actually when it's bounding box has changed by a certain amount) defined by #updateError
  * it will call AstarPath.UpdateGraphs and update the graph around it.
- * 
- * \note This script does only work with GridGraph, PointGraph and LayerGridGraph
- * 
+ *
+ * Make sure that any children colliders do not extend beyond the bounds of the collider attached to the
+ * GameObject that the DynamicGridObstacle component is attached to since this script only updates the graph
+ * using the bounds of the collider on the same GameObject.
+ *
+ * \note This script only works with GridGraph, PointGraph and LayerGridGraph
+ *
  * \see AstarPath.UpdateGraphs
+ * \see graph-updates
  */
+[RequireComponent(typeof(Collider))]
+[HelpURL("http://arongranberg.com/astar/docs/class_dynamic_grid_obstacle.php")]
 public class DynamicGridObstacle : MonoBehaviour {
-	
+	/** Collider to get bounds information from */
 	Collider col;
-	public float updateError = 1; /**< The minimum change along one of the axis of the bounding box of collider to trigger a graph update */
-	public float checkTime = 0.2F; /**< Time in seconds between bounding box checks */
-	
-	/** Use this for initialization */
-	void Start () {
-		col = collider;
-		if (collider == null) {
-			Debug.LogError ("A collider must be attached to the GameObject for DynamicGridObstacle to work");
-		}
-		StartCoroutine (UpdateGraphs ());
-	}
-	
+
+	/** Cached transform component */
+	Transform tr;
+
+	/** The minimum change in world units along one of the axis of the bounding box of the collider to trigger a graph update */
+	public float updateError = 1;
+
+	/** Time in seconds between bounding box checks.
+	 * If AstarPath.batchGraphUpdates is enabled, it is not beneficial to have a checkTime much lower
+	 * than AstarPath.graphUpdateBatchingInterval because that will just add unnecessary many graph updates.
+	 */
+	public float checkTime = 0.2F;
+
+	/** Bounds of the collider the last time the graphs were updated */
 	Bounds prevBounds;
-	bool isWaitingForUpdate = false;
-	
-	/** Coroutine which checks for changes in the collider's bounding box */
-	IEnumerator UpdateGraphs () {
-		
-		if (col == null || AstarPath.active == null) {
-			Debug.LogWarning ("No collider is attached to the GameObject. Canceling check");
-			yield break;
+
+	/** Rotation of the collider the last time the graphs were updated */
+	Quaternion prevRotation;
+
+	/** True if the collider was enabled last time the graphs were updated */
+	bool prevEnabled;
+
+	float lastCheckTime = -9999;
+
+	void Start () {
+		col = GetComponent<Collider>();
+		tr = transform;
+		if (col == null) {
+			throw new System.Exception("A collider must be attached to the GameObject for the DynamicGridObstacle to work");
 		}
-		
-		//Perform update checks while there is a collider attached to the GameObject
-		while (col) {
-			
-			while (isWaitingForUpdate) {
-				yield return new WaitForSeconds (checkTime);
-			}
-			
-			//The current bounds
-			Bounds newBounds = col.bounds;
-			
-			//The combined bounds of the previous bounds and the new bounds
-			Bounds merged = newBounds;
-			merged.Encapsulate (prevBounds);
-			
-			Vector3 minDiff = merged.min - newBounds.min;
-			Vector3 maxDiff = merged.max - newBounds.max;
-			
-			//If the difference between the previous bounds and the new bounds is greater than some value, update the graphs
-			if (Mathf.Abs (minDiff.x) > updateError || Mathf.Abs (minDiff.y) > updateError || Mathf.Abs (minDiff.z) > updateError ||
-			   	Mathf.Abs (maxDiff.x) > updateError || Mathf.Abs (maxDiff.y) > updateError || Mathf.Abs (maxDiff.z) > updateError) {
-				
-				//Update the graphs as soon as possible
-				//DoUpdateGraphs and DoUpdateGraphs2 will be called (in order) when there is an opportunity to update graphs
-				isWaitingForUpdate = true;
-				/** \bug Fix Update Graph Passes */
-				DoUpdateGraphs ();
-				//AstarPath.active.RegisterCanUpdateGraphs (DoUpdateGraphs, DoUpdateGraphs2);
-				
-			}
-			
-			yield return new WaitForSeconds (checkTime);
-		}
-		
-		//The collider object has been removed from the GameObject, pretend the object has been destroyed
-		OnDestroy ();
+		prevBounds = col.bounds;
+		prevEnabled = col.enabled;
+		prevRotation = tr.rotation;
 	}
-	
+
+	void Update () {
+		if (!col) {
+			Debug.LogError("Removed collider from DynamicGridObstacle", this);
+			enabled = false;
+			return;
+		}
+
+		while (AstarPath.active == null || AstarPath.active.isScanning) {
+			lastCheckTime = Time.realtimeSinceStartup;
+		}
+
+		if (Time.realtimeSinceStartup - lastCheckTime < checkTime) {
+			return;
+		}
+
+		if (col.enabled) {
+			// The current bounds of the collider
+			Bounds newBounds = col.bounds;
+			var newRotation = tr.rotation;
+
+			Vector3 minDiff = prevBounds.min - newBounds.min;
+			Vector3 maxDiff = prevBounds.max - newBounds.max;
+
+			var extents = newBounds.extents.magnitude;
+			// This is the distance that a point furthest out on the bounding box
+			// would have moved due to the changed rotation of the object
+			var errorFromRotation = extents*Quaternion.Angle(prevRotation, newRotation)*Mathf.Deg2Rad;
+
+			// If the difference between the previous bounds and the new bounds is greater than some value, update the graphs
+			if (minDiff.sqrMagnitude > updateError*updateError || maxDiff.sqrMagnitude > updateError*updateError ||
+				errorFromRotation > updateError || !prevEnabled) {
+				// Update the graphs as soon as possible
+				DoUpdateGraphs();
+			}
+		} else {
+			// Collider is disabled
+			if (prevEnabled) {
+				DoUpdateGraphs();
+			}
+		}
+	}
+
 	/** Revert graphs when destroyed.
 	 * When the DynamicObstacle is destroyed, a last graph update should be done to revert nodes to their original state */
-	public void OnDestroy () {
+	void OnDestroy () {
 		if (AstarPath.active != null) {
-			GraphUpdateObject guo = new GraphUpdateObject (prevBounds);
-			AstarPath.active.UpdateGraphs (guo);
+			var guo = new GraphUpdateObject(prevBounds);
+			AstarPath.active.UpdateGraphs(guo);
 		}
 	}
-	
+
 	public void DoUpdateGraphs () {
-		if (col == null) { return; }
-		
-		isWaitingForUpdate = false;
-		Bounds newBounds = col.bounds;
-		
-		//if (!simple) {
+		if (col == null) return;
+
+		if (!col.enabled) {
+			// If the collider is not enabled, then col.bounds will empty
+			// so just update prevBounds
+			AstarPath.active.UpdateGraphs(prevBounds);
+		} else {
+			Bounds newBounds = col.bounds;
+
 			Bounds merged = newBounds;
-			merged.Encapsulate (prevBounds);
-			
-			if (BoundsVolume (merged) < BoundsVolume (newBounds)+BoundsVolume(prevBounds)) {
-				AstarPath.active.UpdateGraphs (merged);
+			merged.Encapsulate(prevBounds);
+
+			// Check what seems to be fastest, to update the union of prevBounds and newBounds in a single request
+			// or to update them separately, the smallest volume is usually the fastest
+			if (BoundsVolume(merged) < BoundsVolume(newBounds) + BoundsVolume(prevBounds)) {
+				// Send an update request to update the nodes inside the 'merged' volume
+				AstarPath.active.UpdateGraphs(merged);
 			} else {
-				AstarPath.active.UpdateGraphs (prevBounds);
-				AstarPath.active.UpdateGraphs (newBounds);
+				// Send two update request to update the nodes inside the 'prevBounds' and 'newBounds' volumes
+				AstarPath.active.UpdateGraphs(prevBounds);
+				AstarPath.active.UpdateGraphs(newBounds);
 			}
-		/*} else {
-			GraphUpdateObject guo = new GraphUpdateObject (prevBounds);
-			guo.updatePhysics = false;
-			guo.modifyWalkability = true;
-			guo.setWalkability = true;
-			
-			AstarPath.active.UpdateGraphs (guo);
-		}*/
-		
-		
-		prevBounds = newBounds;
-	}
-	
-	/*public void DoUpdateGraphs2 () {
-		if (col == null) { return; }
-		
-		if (simple) {
-			GraphUpdateObject guo = new GraphUpdateObject (col.bounds);
-			guo.updatePhysics = false;
-			guo.modifyWalkability = true;
-			guo.setWalkability = false;
-			AstarPath.active.UpdateGraphs (guo);
+
+			prevBounds = newBounds;
 		}
-	}*/
-	
-	/* Returns a new Bounds object which contains both \a b1 and \a b2 */
-	/*public Rect ExpandToContain (Bounds b1, Bounds b2) {
-		Vector3 min = Vector3.Min (b1.min,b2.min);
-		Vector3 max = Vector3.Max (b1.max,b2.max);
-		
-		return new Bounds ((max+min)*0.5F,max-min);
-	}*/
-	
+
+		prevEnabled = col.enabled;
+		prevRotation = tr.rotation;
+		lastCheckTime = Time.realtimeSinceStartup;
+	}
+
 	/** Returns the volume of a Bounds object. X*Y*Z */
-	public float BoundsVolume (Bounds b) {
-		return System.Math.Abs (b.size.x * b.size.y * b.size.z);
+	static float BoundsVolume (Bounds b) {
+		return System.Math.Abs(b.size.x * b.size.y * b.size.z);
 	}
 }

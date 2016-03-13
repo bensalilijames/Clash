@@ -2,18 +2,16 @@
 
 using System;
 using UnityEngine;
-using Pathfinding;
-using System.Collections.Generic;
 
-namespace Pathfinding
-{
+namespace Pathfinding {
+	using Pathfinding;
+
 	/** Axis Aligned Bounding Box Tree.
-	 * Holds a bounding box tree of triangles.\n
-	 * \b Performance: Insertion - Practically O(1) - About 0.003 ms
+	 * Holds a bounding box tree of triangles.
+	 *
 	 * \astarpro
 	 */
-	public class BBTree
-	{
+	public class BBTree {
+		public void OnDrawGizmos () {}
 	}
 }
-

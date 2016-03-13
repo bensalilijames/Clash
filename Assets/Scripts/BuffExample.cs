@@ -1,9 +1,11 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class BuffExample : Buff {
+public class BuffExample : Buff
+{
 	
-	public BuffExample () {
+	public BuffExample()
+	{
 		name = "Example buff";
 		buffType = BuffType.Timed;
 		timeOfBuff = 5.0f;
@@ -12,6 +14,5 @@ public class BuffExample : Buff {
 		statModifiers[0] = new StatModifier(Stat.AttackSpeed, 5.0f);
 		statModifiers[1] = new StatModifier(Stat.MovementSpeed, 5.0f);
 	}
-
 	
 }

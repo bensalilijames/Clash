@@ -1,6 +1,5 @@
 using UnityEngine;
-using System.Collections;
-using Pathfinding;
+using System.Collections.Generic;
 
 namespace Pathfinding {
 	[System.Serializable]
@@ -8,166 +7,175 @@ namespace Pathfinding {
 	 * \ingroup modifiers
 	 */
 	public class StartEndModifier : PathModifier {
-		
-		public override ModifierData input {
-			get { return ModifierData.Vector; }
-		}
-		
-		public override ModifierData output {
-			get { return (addPoints ? ModifierData.None : ModifierData.StrictVectorPath) | ModifierData.VectorPath; }
-		}
-		
-		/** Add points to the path instead of replacing. */
-		public bool addPoints = false;
+		public override int Order { get { return 0; } }
+
+		/** Add points to the path instead of replacing them */
+		public bool addPoints;
 		public Exactness exactStartPoint = Exactness.ClosestOnNode;
 		public Exactness exactEndPoint = Exactness.ClosestOnNode;
-		
+
+		/** Will be called when a path is processed.
+		 * The value which is returned will be used as the start point of the path
+		 * and potentially clamped depending on the value of the #exactStartPoint field.
+		 * Only used for the Original, Interpolate and NodeConnection modes.
+		 */
+		public System.Func<Vector3> adjustStartPoint;
+
 		/** Sets where the start and end points of a path should be placed */
 		public enum Exactness {
-			SnapToNode,		/**< The point is snapped to the first/last node in the path*/
-			Original,		/**< The point is set to the exact point which was passed when calling the pathfinding */
-			Interpolate,	/**< The point is set to the closest point on the line between either the two first points or the two last points */
-			ClosestOnNode	/**< The point is set to the closest point on the node. Note that for some node types (point nodes) the "closest point" is the node's position which makes this identical to Exactness.SnapToNode */
+			/** The point is snapped to the first/last node in the path*/
+			SnapToNode,
+			/** The point is set to the exact point which was passed when calling the pathfinding */
+			Original,
+			/** The point is set to the closest point on the line between either the two first points or the two last points.
+			 * Usually you will want to use the NodeConnection mode instead since that is usually the behaviour that you really want.
+			 */
+			Interpolate,
+			/** The point is set to the closest point on the node. Note that for some node types (point nodes) the "closest point" is the node's position which makes this identical to Exactness.SnapToNode */
+			ClosestOnNode,
+			/** The point is set to the closest point on one of the connections from the start/end node */
+			NodeConnection,
 		}
-		
-		public bool useRaycasting = false;
+
+		public bool useRaycasting;
 		public LayerMask mask = -1;
-		
-		public bool useGraphRaycasting = false;
-		
-		/*public override void ApplyOriginal (Path p) {
-			
-			if (exactStartPoint) {
-				pStart = GetClampedPoint (p.path[0].position, p.originalStartPoint, p.path[0]);
-				
-				if (!addPoints) {
-					p.startPoint = pStart;
-				}
+
+		public bool useGraphRaycasting;
+
+		List<GraphNode> connectionBuffer;
+		GraphNodeDelegate connectionBufferAddDelegate;
+
+		public override void Apply (Path _p) {
+			var p = _p as ABPath;
+
+			// This modifier only supports ABPaths (doesn't make much sense for other paths anyway)
+			if (p == null || p.vectorPath.Count == 0) return;
+
+			if (p.vectorPath.Count == 1 && !addPoints) {
+				// Duplicate first point
+				p.vectorPath.Add(p.vectorPath[0]);
 			}
-			
-			if (exactEndPoint) {
-				pEnd = GetClampedPoint (p.path[p.path.Length-1].position, p.originalEndPoint, p.path[p.path.Length-1]);
-				
-				if (!addPoints) {
-					p.endPoint = pEnd;
-				}
-			}
-		}*/
-		
-		public override void Apply (Path _p, ModifierData source) {
-			
-			ABPath p = _p as ABPath;
-			
-			//Only for ABPaths
-			if (p == null) return;
-			
-			if (p.vectorPath.Count == 0) {
-				return;
-			} else if (p.vectorPath.Count < 2 && !addPoints) {
-				//Vector3[] arr = new Vector3[2];
-				//arr[0] = p.vectorPath[0];
-				//arr[1] = p.vectorPath[0];
-				//p.vectorPath = arr;
-				p.vectorPath.Add (p.vectorPath[0]);
-			}
-			
-			//Debug.DrawRay (p.originalEndPoint,Vector3.up,Color.red);
-			//Debug.DrawRay (p.startPoint,Vector3.up,Color.red);
-			//Debug.DrawRay (p.endPoint,Vector3.up,Color.green);
-			
-			Vector3 pStart = Vector3.zero,
-			pEnd = Vector3.zero;
-			
-			if (exactStartPoint == Exactness.Original) {
-				pStart = GetClampedPoint ((Vector3)p.path[0].position, p.originalStartPoint, p.path[0]);
-			} else if (exactStartPoint == Exactness.ClosestOnNode) {
-				pStart = GetClampedPoint ((Vector3)p.path[0].position, p.startPoint, p.path[0]);
-			} else if (exactStartPoint == Exactness.Interpolate) {
-				pStart = GetClampedPoint ((Vector3)p.path[0].position, p.originalStartPoint, p.path[0]);
-				pStart = AstarMath.NearestPointStrict ((Vector3)p.path[0].position,(Vector3)p.path[1>=p.path.Count?0:1].position,pStart);
+
+			// Add instead of replacing points
+			bool forceAddStartPoint, forceAddEndPoint;
+
+			Vector3 pStart = Snap(p, exactStartPoint, true, out forceAddStartPoint);
+			Vector3 pEnd = Snap(p, exactEndPoint, false, out forceAddEndPoint);
+
+			// Add or replace the start point
+			// Disable adding of points if the mode is SnapToNode since then
+			// the first item in vectorPath will very likely be the same as the
+			// position of the first node
+			if ((forceAddStartPoint || addPoints) && exactStartPoint != Exactness.SnapToNode) {
+				p.vectorPath.Insert(0, pStart);
 			} else {
-				pStart = (Vector3)p.path[0].position;
-			}
-			
-			if (exactEndPoint == Exactness.Original) {
-				pEnd   = GetClampedPoint ((Vector3)p.path[p.path.Count-1].position, p.originalEndPoint, p.path[p.path.Count-1]);
-			} else if (exactEndPoint == Exactness.ClosestOnNode) {
-				pEnd = GetClampedPoint ((Vector3)p.path[p.path.Count-1].position, p.endPoint, p.path[p.path.Count-1]);
-			} else if (exactEndPoint == Exactness.Interpolate) {
-				pEnd   = GetClampedPoint ((Vector3)p.path[p.path.Count-1].position, p.originalEndPoint, p.path[p.path.Count-1]);
-				
-				pEnd = AstarMath.NearestPointStrict ((Vector3)p.path[p.path.Count-1].position,(Vector3)p.path[p.path.Count-2<0?0:p.path.Count-2].position,pEnd);
-			} else {
-				pEnd = (Vector3)p.path[p.path.Count-1].position;
-			}
-			
-			if (!addPoints) {
-				//p.vectorPath[0] = p.startPoint;
-				//p.vectorPath[p.vectorPath.Length-1] = p.endPoint;
-				//Debug.DrawLine (p.vectorPath[0],pStart,Color.green);
-				//Debug.DrawLine (p.vectorPath[p.vectorPath.Length-1],pEnd,Color.green);
 				p.vectorPath[0] = pStart;
-				p.vectorPath[p.vectorPath.Count-1] = pEnd;
-				
-				
+			}
+
+			if ((forceAddEndPoint || addPoints) && exactEndPoint != Exactness.SnapToNode) {
+				p.vectorPath.Add(pEnd);
 			} else {
-				
-				//Vector3[] newPath = new Vector3[p.vectorPath.Length+(exactStartPoint != Exactness.SnapToNode ? 1 : 0) + (exactEndPoint  != Exactness.SnapToNode ? 1 : 0)];
-				
-				if (exactStartPoint != Exactness.SnapToNode) {
-					//newPath[0] = pStart;
-					p.vectorPath.Insert (0,pStart);
-				}
-				
-				if (exactEndPoint != Exactness.SnapToNode) {
-					//newPath[newPath.Length-1] = pEnd;
-					p.vectorPath.Add (pEnd);
-				}
-				
-				/*int offset = exactStartPoint != Exactness.SnapToNode ? 1 : 0;
-				for (int i=0;i<p.vectorPath.Length;i++) {
-					newPath[i+offset] = p.vectorPath[i];
-				}
-				p.vectorPath = newPath;*/
+				p.vectorPath[p.vectorPath.Count-1] = pEnd;
 			}
-			
 		}
-		
-		public Vector3 GetClampedPoint (Vector3 from, Vector3 to, GraphNode hint) {
-			
-			//float minDistance = Mathf.Infinity;
-			Vector3 minPoint = to;
-			
-			if (useRaycasting) {
-				RaycastHit hit;
-				if (Physics.Linecast (from,to,out hit,mask)) {
-					minPoint = hit.point;
-					//minDistance = hit.distance;
+
+		Vector3 Snap (ABPath path, Exactness mode, bool start, out bool forceAddPoint) {
+			var index = start ? 0 : path.path.Count - 1;
+			var node = path.path[index];
+			var nodePos = (Vector3)node.position;
+
+			forceAddPoint = false;
+
+			switch (mode) {
+			case Exactness.ClosestOnNode:
+				return GetClampedPoint(nodePos, start ? path.startPoint : path.endPoint, node);
+			case Exactness.SnapToNode:
+				return nodePos;
+			case Exactness.Original:
+			case Exactness.Interpolate:
+			case Exactness.NodeConnection:
+				Vector3 relevantPoint;
+				if (start) {
+					relevantPoint = adjustStartPoint != null ? adjustStartPoint() : path.originalStartPoint;
+				} else {
+					relevantPoint = path.originalEndPoint;
 				}
-			}
-			
-			if (useGraphRaycasting && hint != null) {
-				
-				NavGraph graph = AstarData.GetGraph (hint);
-				
-				if (graph != null) {
-					IRaycastableGraph rayGraph = graph as IRaycastableGraph;
-					
-					if (rayGraph != null) {
-						GraphHitInfo hit;
-						
-						if (rayGraph.Linecast (from,minPoint, hint, out hit)) {
-							
-							//if ((hit.point-from).magnitude < minDistance) {
-								minPoint = hit.point;
-							//}
+
+				switch (mode) {
+				case Exactness.Original:
+					return GetClampedPoint(nodePos, relevantPoint, node);
+				case Exactness.Interpolate:
+					var clamped = GetClampedPoint(nodePos, relevantPoint, node);
+					// Adjacent node to either the start node or the end node in the path
+					var adjacentNode = path.path[Mathf.Clamp(index + (start ? 1 : -1), 0, path.path.Count-1)];
+					return VectorMath.ClosestPointOnSegment(nodePos, (Vector3)adjacentNode.position, clamped);
+				case Exactness.NodeConnection:
+					// This code uses some tricks to avoid allocations
+					// even though it uses delegates heavily
+					// The connectionBufferAddDelegate delegate simply adds whatever node
+					// it is called with to the connectionBuffer
+					connectionBuffer = connectionBuffer ?? new List<GraphNode>();
+					connectionBufferAddDelegate = connectionBufferAddDelegate ?? (GraphNodeDelegate)connectionBuffer.Add;
+
+					// Adjacent node to either the start node or the end node in the path
+					adjacentNode = path.path[Mathf.Clamp(index + (start ? 1 : -1), 0, path.path.Count-1)];
+
+					// Add all neighbours of #node to the connectionBuffer
+					node.GetConnections(connectionBufferAddDelegate);
+					var bestPos = nodePos;
+					var bestDist = float.PositiveInfinity;
+
+					// Loop through all neighbours
+					// Do it in reverse order because the length of the connectionBuffer
+					// will change during iteration
+					for (int i = connectionBuffer.Count - 1; i >= 0; i--) {
+						var neighbour = connectionBuffer[i];
+
+						// Find the closest point on the connection between the nodes
+						// and check if the distance to that point is lower than the previous best
+						var closest = VectorMath.ClosestPointOnSegment(nodePos, (Vector3)neighbour.position, relevantPoint);
+
+						var dist = (closest - relevantPoint).sqrMagnitude;
+						if (dist < bestDist) {
+							bestPos = closest;
+							bestDist = dist;
+
+							// If this node is not the adjacent node
+							// then the path should go through the start node as well
+							forceAddPoint = neighbour != adjacentNode;
 						}
+					}
+
+					connectionBuffer.Clear();
+					return bestPos;
+				default:
+					throw new System.ArgumentException("Cannot reach this point, but the compiler is not smart enough to realize that.");
+				}
+			default:
+				throw new System.ArgumentException("Invalid mode");
+			}
+		}
+
+		public Vector3 GetClampedPoint (Vector3 from, Vector3 to, GraphNode hint) {
+			Vector3 point = to;
+			RaycastHit hit;
+
+			if (useRaycasting && Physics.Linecast(from, to, out hit, mask)) {
+				point = hit.point;
+			}
+
+			if (useGraphRaycasting && hint != null) {
+				var rayGraph = AstarData.GetGraph(hint) as IRaycastableGraph;
+
+				if (rayGraph != null) {
+					GraphHitInfo graphHit;
+					if (rayGraph.Linecast(from, point, hint, out graphHit)) {
+						point = graphHit.point;
 					}
 				}
 			}
-			
-			return minPoint;
+
+			return point;
 		}
-		
 	}
 }
