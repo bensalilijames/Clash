@@ -74,6 +74,7 @@ public class Stats : MonoBehaviour
 		}
 	}
 
+	[RPC]
 	public void ApplyBuff(Buff buffToSet)
 	{
 		Debug.Log("Applying buff to stats");

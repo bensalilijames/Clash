@@ -1,6 +1,11 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+public enum TeamTag {
+	Red,
+	Blue
+}
+
 public class BattleController : MonoBehaviour
 {
 	public GameObject playerCreatorPrefab;
@@ -80,6 +85,11 @@ public class BattleController : MonoBehaviour
 		{
 			return null;
 		}
+	}
+
+	public TeamTag GetPlayerTeamTag(GameObject player)
+	{
+		return GetGameObjectID(player) % 2 ? TeamTag.Red : TeamTag.Blue;
 	}
 	
 	// Update is called once per frame
