@@ -30,6 +30,11 @@ public class Ability
 			currentCooldown = 0;
 	}
 
+	public void PutAbilityOnCooldown()
+	{
+		currentCooldown = cooldown;
+	}
+
 	public void DoAbility(GameObject player, Vector3 position)
 	{
 		

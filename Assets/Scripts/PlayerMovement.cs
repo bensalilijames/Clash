@@ -81,25 +81,28 @@ public class PlayerMovement : uLink.MonoBehaviour
 			
 			transform.position = Vector3.MoveTowards(transform.position, targetPosition, moveSpeed * Time.deltaTime);
 			transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotateSpeed * Time.deltaTime);
-			
-			if (abilitiesEngineScript.queuedAbilityID != -1)
+
+			int queuedAbilityID = abilitiesEngineScript.queuedAbilityID;
+			if (queuedAbilityID != -1)
 			{
 				AbilityType abilityType = abilitiesEngineScript.abilities[abilitiesEngineScript.queuedAbilityID].abilityType;
 				if (abilityType == AbilityType.TargettedAreaEffect)
 				{
-					MoveInRange(abilitiesEngineScript.queuedAbilityPosition);
+					float abilityRange = abilitiesEngineScript.GetAbilityRange(queuedAbilityID);
+					MoveInRange(abilitiesEngineScript.queuedAbilityPosition, abilityRange);
 				}
 				else if (abilityType == AbilityType.TargettedEffect)
 				{
 					GameObject targetPlayer = battleControllerScript.GetGameObject(abilitiesEngineScript.queuedAbilityTarget);
-					MoveInRange(targetPlayer.transform.position);
+					float abilityRange = abilitiesEngineScript.GetAbilityRange(queuedAbilityID);
+					MoveInRange(targetPlayer.transform.position, abilityRange);
 				}
 			}
 			else if (combatScript.target != null)
 			{
 				if (!searchingForPath)
 				{
-					MoveInRange(combatScript.target.transform.position);
+					MoveInRange(combatScript.target.transform.position, combatScript.range);
 				}
 			}
 			
@@ -112,15 +115,15 @@ public class PlayerMovement : uLink.MonoBehaviour
 	}
 
 	
-	public void MoveInRange(Vector3 target)
+	public void MoveInRange(Vector3 target, float range)
 	{
 		Vector3 distance = target - transform.position;
 		distance.y = 0;
-		
+
 		//If we're within range of the target, stop moving and face them
-		float range = combatScript.range;
-		if (distance.magnitude < range + 0.01f)
+		if (distance.magnitude < range)
 		{
+			Debug.Log("Completed path");
 			path = null;
 			targetPosition = transform.position;
 			targetRotation = Quaternion.LookRotation(distance);
@@ -156,7 +159,7 @@ public class PlayerMovement : uLink.MonoBehaviour
 			if (target != gameObject)
 			{
 				combatScript.target = target;
-				MoveInRange(target.transform.position);
+				MoveInRange(target.transform.position, combatScript.range);
 			}
 		}
 	}

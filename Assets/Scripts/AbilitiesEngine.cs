@@ -19,6 +19,12 @@ public class AbilitiesEngine : MonoBehaviour
 	
 	private BattleController battleControllerScript;
 
+	void Awake()
+	{
+		queuedAbilityID = -1;
+		shownAbilityIndicator = -1;
+	}
+
 	// Client-side method to cast an ability.
 	public void CastAbility(int abilityID, Vector3 position, int targetID)
 	{
@@ -31,6 +37,7 @@ public class AbilitiesEngine : MonoBehaviour
 	{
 		Debug.Log("Actually executing ability now in range");
 		abilities[queuedAbilityID].DoAbility(gameObject, queuedAbilityPosition);
+		uLink.NetworkView.Get(this).RPC("PutAbilityOnCooldown", uLink.RPCMode.All, queuedAbilityID);
 		queuedAbilityID = -1;
 		queuedAbilityPosition = Vector3.zero;
 		queuedAbilityTarget = -1;
@@ -79,13 +86,21 @@ public class AbilitiesEngine : MonoBehaviour
 		return abilities[abilityID].currentCooldown == 0.0f;
 	}
 
-	private void BeginCastTimer() {
+	private void BeginCastTimer()
+	{
 		timeToCastAbility = abilities[queuedAbilityID].castTime;
 	}
 
-	public void UpdateCastTimer() {
+	public void UpdateCastTimer()
+	{
 		timeToCastAbility -= Time.deltaTime;
-		if (timeToCastAbility < 0.0f) timeToCastAbility = 0.0f;
+		if (timeToCastAbility < 0.0f)
+			timeToCastAbility = 0.0f;
+	}
+
+	public float GetAbilityRange(int abilityID)
+	{
+		return abilities[abilityID].range;
 	}
 
 	// Use this for initialization
@@ -104,35 +119,42 @@ public class AbilitiesEngine : MonoBehaviour
 			if (abilities[i] != null)
 				abilities[i].UpdateCooldown();
 		}
-		
+
 		if (queuedAbilityID != -1)
 		{
-			if (needToSetCastTimer) {
+			if (needToSetCastTimer)
+			{
 				if (abilities[queuedAbilityID].abilityType == AbilityType.TargettedAreaEffect)
 				{
-					if (Vector3.Distance(transform.position, queuedAbilityPosition) < abilities[queuedAbilityID].range)
+					Vector3 distanceNoY = transform.position;
+					distanceNoY.y = 0;
+					if (Vector3.Distance(distanceNoY, queuedAbilityPosition) <= abilities[queuedAbilityID].range)
 					{
 						BeginCastTimer();
+						needToSetCastTimer = false;
 					}
 				}
 				else if (abilities[queuedAbilityID].abilityType == AbilityType.TargettedEffect)
 				{
-					Vector3 targetPosition = battleControllerScript.GetGameObject(queuedAbilityTarget).transform.position;
-					if (Vector3.Distance(transform.position, targetPosition) < abilities[queuedAbilityID].range)
+					Vector3 distanceNoY = battleControllerScript.GetGameObject(queuedAbilityTarget).transform.position;
+					distanceNoY.y = 0;
+					if (Vector3.Distance(transform.position, distanceNoY) <= abilities[queuedAbilityID].range)
 					{
 						BeginCastTimer();
+						needToSetCastTimer = false;
 					}
 				}
 				else
 				{
 					BeginCastTimer();
+					needToSetCastTimer = false;
 				}
-				needToSetCastTimer = false;
 			}
 
 			UpdateCastTimer();
 
-			if (timeToCastAbility == 0.0f) {
+			if (!needToSetCastTimer && timeToCastAbility == 0.0f)
+			{
 				ExecuteQueuedAbility();
 			}
 		}
@@ -158,5 +180,11 @@ public class AbilitiesEngine : MonoBehaviour
 		queuedAbilityPosition = position;
 		queuedAbilityTarget = targetID;
 		needToSetCastTimer = true;
+	}
+
+	[RPC]
+	void PutAbilityOnCooldown(int abilityID)
+	{
+		abilities[abilityID].PutAbilityOnCooldown();
 	}
 }
