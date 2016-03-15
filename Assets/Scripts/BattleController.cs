@@ -89,7 +89,7 @@ public class BattleController : MonoBehaviour
 
 	public TeamTag GetPlayerTeamTag(GameObject player)
 	{
-		return GetGameObjectID(player) % 2 ? TeamTag.Red : TeamTag.Blue;
+		return GetGameObjectID(player) % 2 == 0 ? TeamTag.Red : TeamTag.Blue;
 	}
 	
 	// Update is called once per frame

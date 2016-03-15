@@ -25,7 +25,6 @@ public class PlayerInput : MonoBehaviour
 	{
 		if (Input.GetMouseButton(0))
 		{
-//			movementScript.combatScript.target = null;
 			RaycastHit hit;
 			Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 			

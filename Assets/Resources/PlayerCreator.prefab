@@ -256,6 +256,7 @@ MonoBehaviour:
   target: {fileID: 0}
   range: 6
   shootSound: {fileID: 8300000, guid: 2b0996a21ff2c4c8e99d0b0b7438fca0, type: 3}
+  projectilePrefab: {fileID: 106424, guid: 2c4dec0c8f46a403093599bcb5d5c65a, type: 2}
 --- !u!114 &11400004
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1961,6 +1962,10 @@ Prefab:
       propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 7afb09f75a5674b12ae930cf98a1c2b0, type: 2}
+    - target: {fileID: 0}
+      propertyPath: projectilePrefab
+      value: 
+      objectReference: {fileID: 106424, guid: 2c4dec0c8f46a403093599bcb5d5c65a, type: 2}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 0}
   m_RootGameObject: {fileID: 100000}

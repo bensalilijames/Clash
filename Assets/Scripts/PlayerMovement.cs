@@ -123,7 +123,6 @@ public class PlayerMovement : uLink.MonoBehaviour
 		//If we're within range of the target, stop moving and face them
 		if (distance.magnitude < range)
 		{
-			Debug.Log("Completed path");
 			path = null;
 			targetPosition = transform.position;
 			targetRotation = Quaternion.LookRotation(distance);
@@ -149,7 +148,7 @@ public class PlayerMovement : uLink.MonoBehaviour
 			targetPosition.y = 0.5f;
 			targetRotation = Quaternion.LookRotation(targetPosition - transform.position);
 			
-			combatScript.target = null;
+			combatScript.SetCombatTarget(null);
 			
 			FindPath();
 		}
@@ -158,7 +157,7 @@ public class PlayerMovement : uLink.MonoBehaviour
 			GameObject target = battleControllerScript.GetGameObject(ID);
 			if (target != gameObject)
 			{
-				combatScript.target = target;
+				combatScript.SetCombatTarget(target);
 				MoveInRange(target.transform.position, combatScript.range);
 			}
 		}

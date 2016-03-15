@@ -9,6 +9,7 @@ public class Combat : MonoBehaviour
 	public GameObject target;
 	public float range;
 	public AudioClip shootSound;
+	public GameObject projectilePrefab;
 
 	private float cooldown;
 	
@@ -39,13 +40,15 @@ public class Combat : MonoBehaviour
 				cooldown -= attackSpeed * Time.deltaTime;
 				return;
 			}
+
 			if (target == null)
 			{
 				return;
 			}
+
 			Vector3 correctedTargetPosition = target.transform.position;
 			correctedTargetPosition.y = 0.5f;
-			if ((correctedTargetPosition - transform.position).magnitude > range + 0.01f)
+			if ((correctedTargetPosition - transform.position).magnitude > range)
 			{
 				return;
 			}
@@ -60,10 +63,40 @@ public class Combat : MonoBehaviour
 			Debug.Log("GameObject ID for attacker: " + attackerID);
 			int targetID = battleControllerScript.GetGameObjectID(target);
 			Debug.Log("GameObject ID for target: " + targetID);
-			uLinkNetworkView.Get(this).RPC("sendAttack", uLink.RPCMode.Others, attackerID, targetID);
+
+			CreateBasicAttackProjectile();
+
+			//uLinkNetworkView.Get(this).RPC("sendAttack", uLink.RPCMode.Others, attackerID, targetID);
 		}
 	}
 
+	public void CreateBasicAttackProjectile()
+	{
+		int targetID = battleControllerScript.GetGameObjectID(target);
+
+		uLink.NetworkPlayer player = uLink.Network.player;
+
+		Debug.Log("Spawning projectile");
+
+		uLink.Network.Instantiate(player, projectilePrefab, transform.position, transform.rotation, 0,
+			targetID, Vector3.zero, 1.0f);
+	}
+
+	// Server-only
+	public void DoDamage(int damage)
+	{
+		health -= damage;
+	}
+
+	// Server-only
+	public void SetCombatTarget(GameObject targetToSet)
+	{
+		if (uLink.Network.isServer)
+		{
+			target = targetToSet;
+		}
+	}
+		
 	[RPC]
 	public void sendAttack(int attackerID, int targetID)
 	{
@@ -73,7 +106,8 @@ public class Combat : MonoBehaviour
 			Debug.Log("No target from server RPC");
 			return;
 		}
-		gameObject.GetComponentInChildren<AmmoController>().ThrowCube(targetToHit);
+//		gameObject.GetComponentInChildren<AmmoController>().ThrowCube(targetToHit);
+
 		GetComponent<AudioSource>().clip = shootSound;
 		GetComponent<AudioSource>().Play();
 		Debug.Log("Done " + attackDamage + " damage to " + targetToHit.name);
