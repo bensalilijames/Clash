@@ -34,6 +34,7 @@ GameObject:
   - 82: {fileID: 8200000}
   - 114: {fileID: 11439944}
   - 114: {fileID: 11431914}
+  - 114: {fileID: 11492890}
   m_Layer: 0
   m_Name: AIPlayer
   m_TagString: AI
@@ -285,6 +286,26 @@ MonoBehaviour:
   rpcReceiver: 2
   listOfGameObjects: []
   _prefabRoot: {fileID: 100004}
+--- !u!114 &11492890
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 100004}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cb6a34d769a1e4ac7b0b30e433aa443c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  smoothType: 0
+  subdivisions: 2
+  iterations: 2
+  strength: 0.5
+  uniformLength: 1
+  maxSegmentLength: 2
+  bezierTangentLength: 0.4
+  offset: 0.2
+  factor: 0.1
 --- !u!198 &19800000
 ParticleSystem:
   m_ObjectHideFlags: 1

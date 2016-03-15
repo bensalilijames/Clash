@@ -68,7 +68,6 @@ public class PlayerMovement : MovementBase
 
 	void uLink_OnSerializeNetworkView(uLink.BitStream stream, uLink.NetworkMessageInfo info)
 	{
-		Debug.Log("onserializenetworkview");
 		if (stream.isWriting)
 		{
 			stream.Write(currentTargetPosition);

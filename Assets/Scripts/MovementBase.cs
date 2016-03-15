@@ -24,11 +24,12 @@ public class MovementBase : uLink.MonoBehaviour
 
 	void Start()
 	{
-		currentTargetPosition.y = 0.5f;
 		seeker = GetComponent<Seeker>();
 		combatScript = GetComponent<Combat>();
 		battleControllerScript = GameObject.FindGameObjectWithTag("BattleController").GetComponent<BattleController>();
 		abilitiesEngineScript = gameObject.GetComponent<AbilitiesEngine>();
+		currentTargetPosition = transform.position;
+		currentTargetRotation = transform.rotation;
 	}
 
 	public void FindPath()

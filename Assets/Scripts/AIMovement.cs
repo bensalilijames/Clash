@@ -10,7 +10,7 @@ public class AIMovement : MovementBase
 		{
 			if (Random.value < 0.01f)
 			{
-				goalTargetPosition.Set(Random.Range(-20.0f, 20.0f), 0.5f, Random.Range(-20.0f, 20.0f));
+				goalTargetPosition.Set(Random.value * 200.0f, 0.5f, Random.value * 200.0f);
 				FindPath();
 			}
 
@@ -25,7 +25,6 @@ public class AIMovement : MovementBase
 
 	void uLink_OnSerializeNetworkView(uLink.BitStream stream, uLink.NetworkMessageInfo info)
 	{
-		Debug.Log("onserializenetworkview");
 		if (stream.isWriting)
 		{
 			stream.Write(currentTargetPosition);

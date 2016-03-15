@@ -18,6 +18,7 @@ GameObject:
   - 114: {fileID: 11400004}
   - 82: {fileID: 8200000}
   - 114: {fileID: 11400000}
+  - 114: {fileID: 11444196}
   m_Layer: 0
   m_Name: PlayerCreator
   m_TagString: Player
@@ -351,8 +352,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 218fd5ca8f0984d4f80ee478fccb47b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  baseHealth: 0
-  currentHealth: 0
+  baseHealth: 50
+  currentHealth: 50
   baseAttackSpeed: 50
   baseAttackDamage: 0
   baseDefencePotential: 0
@@ -361,6 +362,26 @@ MonoBehaviour:
   attackDamage: 0
   defencePotential: 0
   movementSpeed: 0
+--- !u!114 &11444196
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 100000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cb6a34d769a1e4ac7b0b30e433aa443c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  smoothType: 0
+  subdivisions: 2
+  iterations: 2
+  strength: 0.5
+  uniformLength: 1
+  maxSegmentLength: 2
+  bezierTangentLength: 0.4
+  offset: 0.2
+  factor: 0.1
 --- !u!198 &19800000
 ParticleSystem:
   m_ObjectHideFlags: 1
@@ -1924,6 +1945,14 @@ Prefab:
       propertyPath: projectilePrefab
       value: 
       objectReference: {fileID: 106424, guid: 2c4dec0c8f46a403093599bcb5d5c65a, type: 2}
+    - target: {fileID: 0}
+      propertyPath: baseHealth
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 0}
+      propertyPath: currentHealth
+      value: 50
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 0}
   m_RootGameObject: {fileID: 100000}

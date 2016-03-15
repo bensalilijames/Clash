@@ -417,8 +417,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 218fd5ca8f0984d4f80ee478fccb47b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  baseHealth: 0
-  currentHealth: 0
+  baseHealth: 50
+  currentHealth: 50
   baseAttackSpeed: 50
   baseAttackDamage: 0
   baseDefencePotential: 0
@@ -2182,6 +2182,14 @@ Prefab:
     - target: {fileID: 0}
       propertyPath: m_LocalPosition.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 0}
+      propertyPath: baseHealth
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 0}
+      propertyPath: currentHealth
+      value: 50
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 0}
