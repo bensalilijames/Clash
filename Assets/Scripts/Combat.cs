@@ -3,9 +3,6 @@ using System.Collections;
 
 public class Combat : MonoBehaviour
 {
-	public float attackSpeed;
-	public float attackDamage;
-	public int health;
 	public GameObject target;
 	public float range;
 	public AudioClip shootSound;
@@ -14,6 +11,7 @@ public class Combat : MonoBehaviour
 	private float cooldown;
 	
 	private BattleController battleControllerScript;
+	private Stats statsScript;
 
 	// Use this for initialization
 	void Start()
@@ -22,6 +20,11 @@ public class Combat : MonoBehaviour
 		if (battleControllerScript == null)
 		{
 			Debug.Log("Battle Controller not found");
+		}
+		statsScript = GetComponent<Stats>();
+		if (statsScript == null)
+		{
+			Debug.LogError("No Stats component on a gameobject with a Combat component");
 		}
 	}
 	
@@ -37,7 +40,7 @@ public class Combat : MonoBehaviour
 		{
 			if (cooldown > 0f)
 			{
-				cooldown -= attackSpeed * Time.deltaTime;
+				cooldown -= statsScript.attackSpeed * Time.deltaTime;
 				return;
 			}
 
@@ -79,13 +82,13 @@ public class Combat : MonoBehaviour
 		Debug.Log("Spawning projectile");
 
 		uLink.Network.Instantiate(player, projectilePrefab, transform.position, transform.rotation, 0,
-			targetID, Vector3.zero, 1.0f);
+			targetID, Vector3.zero, 5.0f);
 	}
 
 	// Server-only
 	public void DoDamage(int damage)
 	{
-		health -= damage;
+		statsScript.currentHealth -= damage;
 	}
 
 	// Server-only
@@ -97,7 +100,7 @@ public class Combat : MonoBehaviour
 		}
 	}
 		
-	[RPC]
+	/*[RPC]
 	public void sendAttack(int attackerID, int targetID)
 	{
 		GameObject targetToHit = battleControllerScript.GetGameObject(targetID);
@@ -111,5 +114,5 @@ public class Combat : MonoBehaviour
 		GetComponent<AudioSource>().clip = shootSound;
 		GetComponent<AudioSource>().Play();
 		Debug.Log("Done " + attackDamage + " damage to " + targetToHit.name);
-	}
+	}*/
 }

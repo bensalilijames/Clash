@@ -29,7 +29,7 @@ public class ProjectileBase : MonoBehaviour
 		}
 		else
 		{
-			transform.position = transform.position + (to - transform.position) * speed * Time.deltaTime;
+			transform.position = transform.position + (to - transform.position).normalized * speed * Time.deltaTime;
 		}
 	}
 
@@ -39,24 +39,32 @@ public class ProjectileBase : MonoBehaviour
 		{
 			if (target != null)
 			{
-				Combat combatComponent = target.GetComponent<Combat>();
-				if (combatComponent != null)
+				Stats statsComponent = target.GetComponent<Stats>();
+				if (statsComponent != null)
 				{
-					combatComponent.DoDamage(20);
+					statsComponent.DoDamage(20);
 				}
+
 			}
 			uLink.Network.Destroy(gameObject);
 		}
 	}
 
-	void OnCollisionEnter(Collision col)
+	void OnTriggerEnter(Collider col)
 	{
+		Debug.Log("Collision  with " + col.gameObject.name);
 		if (uLink.Network.isServer)
 		{
 			GameObject collider = col.gameObject;
 			if (collider.name.Contains("Player"))
 			{
 				// only collide against players
+				OnCollision(collider);
+			}
+			if (collider.name.Contains("Turret"))
+			{
+				Debug.Log("Collided with turret");
+				// only collide against turrets
 				OnCollision(collider);
 			}
 		}
@@ -68,12 +76,12 @@ public class ProjectileBase : MonoBehaviour
 		{
 			if (collider != null)
 			{
-				Combat combatComponent = target.GetComponent<Combat>();
-				if (combatComponent != null)
+				Stats statsComponent = target.GetComponent<Stats>();
+				if (statsComponent != null)
 				{
-					combatComponent.DoDamage(50);
-					uLink.Network.Destroy(gameObject);
+					statsComponent.DoDamage(50);
 				}
+				uLink.Network.Destroy(gameObject);
 			}
 		}
 	}

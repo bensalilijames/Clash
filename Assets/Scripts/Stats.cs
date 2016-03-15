@@ -3,6 +3,8 @@ using System.Collections;
 
 public class Stats : MonoBehaviour
 {
+	public int baseHealth;
+	public int currentHealth;
 
 	public float baseAttackSpeed;
 	public float baseAttackDamage;
@@ -17,6 +19,16 @@ public class Stats : MonoBehaviour
 	public Buff[] buffs = new Buff[5];
 	private bool updateStatsRequired = true;
 
+	public void DoDamage(int damage)
+	{
+		currentHealth -= damage;
+		if (currentHealth <= 0)
+		{
+			currentHealth = baseHealth;
+			// death
+		}
+	}
+		
 	void UpdateStats()
 	{
 		attackSpeed = baseAttackSpeed;
