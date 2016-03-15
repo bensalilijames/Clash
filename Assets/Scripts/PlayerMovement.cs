@@ -7,8 +7,10 @@ public class PlayerMovement : uLink.MonoBehaviour
 	public float moveSpeed;
 	public int rotateSpeed;
 			
-	private Vector3 targetPosition;
-	private Quaternion targetRotation;
+	private Vector3 goalTargetPosition;
+	private Quaternion goalTargetRotation;
+	private Vector3 currentTargetPosition;
+	private Quaternion currentTargetRotation;
 	
 	private Combat combatScript;
 	private BattleController battleControllerScript;
@@ -22,7 +24,7 @@ public class PlayerMovement : uLink.MonoBehaviour
 
 	void Start()
 	{
-		targetPosition.y = 0.5f;
+		goalTargetPosition.y = 0.5f;
 		seeker = GetComponent<Seeker>();
 		combatScript = GetComponent<Combat>();
 		battleControllerScript = GameObject.FindGameObjectWithTag("BattleController").GetComponent<BattleController>();
@@ -32,7 +34,7 @@ public class PlayerMovement : uLink.MonoBehaviour
 	public void FindPath()
 	{
 		searchingForPath = true;
-		seeker.StartPath(transform.position, targetPosition, OnPathComplete);
+		seeker.StartPath(transform.position, goalTargetPosition, OnPathComplete);
 	}
 
 	public void OnPathComplete(Path p)
@@ -62,9 +64,9 @@ public class PlayerMovement : uLink.MonoBehaviour
 				{
 					if (!foundNextTargetWaypoint)
 					{
-						targetPosition = path.vectorPath[currentWaypoint];
-						targetPosition.y = 0.5f;
-						targetRotation = Quaternion.LookRotation(targetPosition - transform.position);
+						currentTargetPosition = path.vectorPath[currentWaypoint];
+						currentTargetPosition.y = 0.5f;
+						currentTargetRotation = Quaternion.LookRotation(currentTargetPosition - transform.position);
 						foundNextTargetWaypoint = true;
 					}
 					
@@ -79,8 +81,8 @@ public class PlayerMovement : uLink.MonoBehaviour
 				}
 			}
 			
-			transform.position = Vector3.MoveTowards(transform.position, targetPosition, moveSpeed * Time.deltaTime);
-			transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotateSpeed * Time.deltaTime);
+			transform.position = Vector3.MoveTowards(transform.position, currentTargetPosition, moveSpeed * Time.deltaTime);
+			transform.rotation = Quaternion.Slerp(transform.rotation, currentTargetRotation, rotateSpeed * Time.deltaTime);
 
 			int queuedAbilityID = abilitiesEngineScript.queuedAbilityID;
 			if (queuedAbilityID != -1)
@@ -109,8 +111,8 @@ public class PlayerMovement : uLink.MonoBehaviour
 		}
 		else
 		{
-			transform.position = Vector3.MoveTowards(transform.position, targetPosition, moveSpeed * Time.deltaTime);
-			transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotateSpeed * Time.deltaTime);
+			transform.position = Vector3.MoveTowards(transform.position, currentTargetPosition, moveSpeed * Time.deltaTime);
+			transform.rotation = Quaternion.Slerp(transform.rotation, currentTargetRotation, rotateSpeed * Time.deltaTime);
 		}
 	}
 
@@ -124,17 +126,17 @@ public class PlayerMovement : uLink.MonoBehaviour
 		if (distance.magnitude < range)
 		{
 			path = null;
-			targetPosition = transform.position;
-			targetRotation = Quaternion.LookRotation(distance);
-			transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotateSpeed * Time.deltaTime);
+			currentTargetPosition = transform.position;
+			currentTargetRotation = Quaternion.LookRotation(distance);
+			transform.rotation = Quaternion.Slerp(transform.rotation, currentTargetRotation, rotateSpeed * Time.deltaTime);
 		}
 		else
 		{
 			distance.Normalize();
 			Vector3 temp2 = new Vector3(range, range, range);
 			distance.Scale(temp2);
-			targetPosition = target - distance;
-			targetPosition.y = 0.5f;
+			goalTargetPosition = target - distance;
+			goalTargetPosition.y = 0.5f;
 			FindPath();
 		}
 	}
@@ -144,9 +146,9 @@ public class PlayerMovement : uLink.MonoBehaviour
 	{
 		if (hitName == "Plane")
 		{	
-			targetPosition = position;
-			targetPosition.y = 0.5f;
-			targetRotation = Quaternion.LookRotation(targetPosition - transform.position);
+			goalTargetPosition = position;
+			goalTargetPosition.y = 0.5f;
+			goalTargetRotation = Quaternion.LookRotation(goalTargetPosition - transform.position);
 			
 			combatScript.SetCombatTarget(null);
 			
@@ -167,13 +169,13 @@ public class PlayerMovement : uLink.MonoBehaviour
 	{
 		if (stream.isWriting)
 		{
-			stream.Write(targetPosition);
-			stream.Write(targetRotation);
+			stream.Write(currentTargetPosition);
+			stream.Write(currentTargetRotation);
 		}
 		else
 		{
-			targetPosition = stream.Read<Vector3>();
-			targetRotation = stream.Read<Quaternion>();
+			currentTargetPosition = stream.Read<Vector3>();
+			currentTargetRotation = stream.Read<Quaternion>();
 		}
 	}
 	
