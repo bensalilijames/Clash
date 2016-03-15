@@ -146,33 +146,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 2
---- !u!1 &58223082
-GameObject:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  serializedVersion: 4
-  m_Component:
-  - 4: {fileID: 58223083}
-  m_Layer: 0
-  m_Name: HitmarkPrefabs
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &58223083
-Transform:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 58223082}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 3
 --- !u!1 &119813854
 GameObject:
   m_ObjectHideFlags: 0
@@ -314,7 +287,7 @@ Transform:
   m_LocalScale: {x: 10, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 6
+  m_RootOrder: 5
 --- !u!1 &357278293
 GameObject:
   m_ObjectHideFlags: 0
@@ -611,7 +584,7 @@ Transform:
   m_Children:
   - {fileID: 1117285527}
   m_Father: {fileID: 0}
-  m_RootOrder: 8
+  m_RootOrder: 7
 --- !u!114 &529840263
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -891,7 +864,7 @@ Transform:
   m_LocalScale: {x: 6, y: 1, z: 6}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 7
+  m_RootOrder: 6
 --- !u!1 &944267060
 GameObject:
   m_ObjectHideFlags: 0
@@ -922,7 +895,7 @@ Transform:
   - {fileID: 1629572802}
   - {fileID: 1753005563}
   m_Father: {fileID: 0}
-  m_RootOrder: 10
+  m_RootOrder: 9
 --- !u!1 &1089642531
 GameObject:
   m_ObjectHideFlags: 0
@@ -1089,8 +1062,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 39dcf4ceb051f40ffbfb51bf03cb5ac2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  facingCamera: {fileID: 1923745412}
-  currentHealthRect: {fileID: 0}
 --- !u!114 &1117285529
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1195,8 +1166,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 39dcf4ceb051f40ffbfb51bf03cb5ac2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  facingCamera: {fileID: 1923745412}
-  currentHealthRect: {fileID: 0}
 --- !u!114 &1415580622
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1330,7 +1299,7 @@ Transform:
   m_Children:
   - {fileID: 1415580620}
   m_Father: {fileID: 0}
-  m_RootOrder: 9
+  m_RootOrder: 8
 --- !u!114 &1549856171
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1596,7 +1565,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 4
 --- !u!1 &1629572798
 GameObject:
   m_ObjectHideFlags: 0
@@ -1761,7 +1730,7 @@ GameObject:
   - 81: {fileID: 1923745409}
   - 114: {fileID: 1923745414}
   m_Layer: 0
-  m_Name: Main Camera
+  m_Name: MainCamera
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1833,7 +1802,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 3
 --- !u!114 &1923745414
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1877,6 +1846,7 @@ MonoBehaviour:
   playerCreatorPrefab: {fileID: 100000, guid: 9eec0ef7a307e4d0fa6b16973b2af57d, type: 2}
   playerOwnerPrefab: {fileID: 100002, guid: ec0af367b24e94648a3170c0551dfb50, type: 2}
   playerProxyPrefab: {fileID: 100000, guid: 6c946d9dc0e6b4429959e7c225417d77, type: 2}
+  aiPrefab: {fileID: 100004, guid: 481cb64895bfc43d48ed535241a49004, type: 2}
   players:
   - {fileID: 0}
   - {fileID: 0}

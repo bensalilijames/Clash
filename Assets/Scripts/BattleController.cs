@@ -11,7 +11,8 @@ public class BattleController : MonoBehaviour
 	public GameObject playerCreatorPrefab;
 	public GameObject playerOwnerPrefab;
 	public GameObject playerProxyPrefab;
-	
+	public GameObject aiPrefab;
+
 	public GameObject[] players = new GameObject[5];
 	private int playerCount = 0;
 
@@ -32,6 +33,7 @@ public class BattleController : MonoBehaviour
 	void uLink_OnPlayerConnected(uLink.NetworkPlayer player)
 	{
 		SpawnPlayer(player);
+		SpawnAI();
 	}
 
 	void SpawnPlayer(uLink.NetworkPlayer player)
@@ -39,6 +41,11 @@ public class BattleController : MonoBehaviour
 		Debug.Log("Player initialised with an ID of " + playerCount);
 		players[playerCount] = uLink.Network.Instantiate(player, playerProxyPrefab, playerOwnerPrefab, playerCreatorPrefab, spawnLocation, spawnRotation, 0);
 		playerCount++;
+	}
+
+	void SpawnAI()
+	{
+		uLink.Network.Instantiate(uLink.NetworkPlayer.server, aiPrefab, spawnLocation, spawnRotation, 0);
 	}
 
 	public int GetGameObjectID(GameObject gameObjectToGet)
