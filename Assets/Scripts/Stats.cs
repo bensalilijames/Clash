@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Stats : MonoBehaviour
+public class Stats : uLink.MonoBehaviour
 {
 	public int baseHealth;
 	public int currentHealth;
@@ -141,6 +141,40 @@ public class Stats : MonoBehaviour
 			{
 				GUI.Label(new Rect(100.0f, 200.0f, 100.0f, 100.0f), buffs[buffID].name);
 			}
+		}
+	}
+
+	void uLink_OnSerializeNetworkView(uLink.BitStream stream, uLink.NetworkMessageInfo info)
+	{
+		if (stream.isWriting)
+		{
+			stream.Write(baseHealth);
+			stream.Write(currentHealth);
+
+			stream.Write(baseAttackSpeed);
+			stream.Write(baseAttackDamage);
+			stream.Write(baseDefencePotential);
+			stream.Write(baseMovementSpeed);
+
+			stream.Write(attackSpeed);
+			stream.Write(attackDamage);
+			stream.Write(defencePotential);
+			stream.Write(movementSpeed);
+		}
+		else
+		{
+			baseHealth = stream.Read<int>();
+			currentHealth = stream.Read<int>();
+
+			baseAttackSpeed = stream.Read<float>();
+			baseAttackDamage = stream.Read<float>();
+			baseDefencePotential = stream.Read<float>();
+			baseMovementSpeed = stream.Read<float>();
+
+			attackSpeed = stream.Read<float>();
+			attackDamage = stream.Read<float>();
+			defencePotential = stream.Read<float>();
+			movementSpeed = stream.Read<float>();
 		}
 	}
 }
