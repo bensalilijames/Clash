@@ -18,8 +18,12 @@ public class BattleController : MonoBehaviour
 
 	private GameObject[] turrets = null;
 		
-	private Vector3 spawnLocation = new Vector3(50.0f, 0.5f, 50.0f);
+	private Vector3 spawnLocation = new Vector3(10.0f, 0.5f, 10.0f);
+	private Vector3 aiSpawnLocation = new Vector3(20.0f, 0.5f, 20.0f);
 	private Quaternion spawnRotation = Quaternion.identity;
+
+	private int minionSpawnCount;
+	private float lastMinionSpawnTime;
 
 	void Start()
 	{
@@ -45,7 +49,7 @@ public class BattleController : MonoBehaviour
 
 	void SpawnAI()
 	{
-		uLink.Network.Instantiate(uLink.NetworkPlayer.server, aiPrefab, spawnLocation, spawnRotation, 0);
+		uLink.Network.Instantiate(uLink.NetworkPlayer.server, aiPrefab, aiSpawnLocation, spawnRotation, 0);
 	}
 
 	public int GetGameObjectID(GameObject gameObjectToGet)
@@ -99,10 +103,26 @@ public class BattleController : MonoBehaviour
 		return GetGameObjectID(player) % 2 == 0 ? TeamTag.Red : TeamTag.Blue;
 	}
 	
-	// Update is called once per frame
 	void Update()
 	{
-	
+		if (minionSpawnCount % 6 == 0 && lastMinionSpawnTime + 2.0f < Time.fixedTime)
+		{
+			minionSpawnCount++;
+			lastMinionSpawnTime = Time.fixedTime;
+			SpawnAI(); // spawn super minion
+		}
+		else if ((minionSpawnCount + 1) % 6 == 0 && lastMinionSpawnTime + 10.0f < Time.fixedTime)
+		{
+			minionSpawnCount++;
+			lastMinionSpawnTime = Time.fixedTime;
+			SpawnAI(); // spawn normal minion (first in wave)
+		}
+		else if ((minionSpawnCount + 1) % 6 != 0 && lastMinionSpawnTime + 2.0f < Time.fixedTime)
+		{
+			minionSpawnCount++;
+			lastMinionSpawnTime = Time.fixedTime;
+			SpawnAI(); // spawn normal minion
+		}
 	}
 
 	void uLink_OnSerializeNetworkView(uLink.BitStream stream, uLink.NetworkMessageInfo info)
